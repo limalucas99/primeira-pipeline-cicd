@@ -27,18 +27,27 @@ jobs:
     runs-on: ubuntu-latest
     needs: [CI]
     steps:
-    - name: Obtendo o código
-      uses: actions/checkout@v4.1.5
-    - name: Configuração de contexto do Kubernetes
-      uses: azure/k8s-set-context@v4
-      with:
-         method: kubeconfig
-         kubeconfig: ${{ secrets.K8S_CONFIG }}
-    - name: Execução do Manifesto
-      uses: Azure/k8s-deploy@v5
-      with:
-         manifests: |
-            ./k8s/deployment.yaml
-         images: |
-           limalucas99/aula-primeira-pipeline:v${{ github.run_number }}
-          
+      # — INSTALAÇÃO E AUTENTICAÇÃO DO doctl —
+      - name: Setup doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      # — CHECKOUT DO CÓDIGO —
+      - name: Obtendo o código
+        uses: actions/checkout@v4.1.5
+
+      # — AQUI VOCÊ JÁ TEM o doctl+token, então o kubeconfig "exec: doctl" vai funcionar —
+      - name: Configuração de contexto do Kubernetes
+        uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }}
+
+      - name: Execução do Manifesto
+        uses: Azure/k8s-deploy@v5
+        with:
+          manifests: |
+              ./k8s/deployment.yaml
+          images: |
+            limalucas99/aula-primeira-pipeline:v${{ github.run_number }}
