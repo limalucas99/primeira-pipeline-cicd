@@ -23,10 +23,28 @@ jobs:
           tags: | 
             limalucas99/aula-primeira-pipeline:v${{ github.run_number }}
             limalucas99/aula-primeira-pipeline:latest
-  CD:
+  CD-Homolog:
     needs: [CI]
     uses: limalucas99/primeira-pipeline-cicd/.github/workflows/deploy.yml@main
     with:
       manifests: ./k8s/deployment.yaml
       images: limalucas99/aula-primeira-pipeline:v${{ github.run_number }}
+      environment: homologacao
+    secrets: inherit
+
+  Teste-Ambiente:
+    needs: [CD-Homolog]
+    runs-on: ubuntu-latest
+    environment: homologacao
+    steps:
+      - name: Fake Teste
+        run: "Fake teste de ambiente ${{ vars.APP_NAMESPACE }} "
+
+  CD-producao:
+    needs: [Teste-Ambiente]
+    uses: limalucas99/primeira-pipeline-cicd/.github/workflows/deploy.yml@main
+    with:
+      manifests: ./k8s/deployment.yaml
+      images: limalucas99/aula-primeira-pipeline:v${{ github.run_number }}
+      environment: producao
     secrets: inherit
